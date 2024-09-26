@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/template_sculk_shrieker",
+  "textures": {
+    "particle": "resurectionmod:block/resurrection_table_side",
+    "bottom": "resurectionmod:block/resurrection_table_bottom",
+    "top": "resurectionmod:block/resurrection_table_top",
+    "side": "resurectionmod:block/resurrection_table_side",
+    "inner_top": "resurectionmod:block/resurrection_table_inner_top"
+  }
+}

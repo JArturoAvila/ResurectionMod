@@ -1,5 +1,6 @@
 package com.JackSeyer.resurectionmod;
 
+import com.JackSeyer.resurectionmod.block.ModBlocks;
 import com.JackSeyer.resurectionmod.command.ReviveCommand;
 import com.JackSeyer.resurectionmod.item.ModItems;
 import com.JackSeyer.resurectionmod.event.PlayerDeathEvent; // Importamos la clase de eventos
@@ -55,6 +56,8 @@ public class ResurectionMod {
     public ResurectionMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        ModBlocks.BLOCKS.register(modEventBus);
+        ModBlocks.ITEMS.register(modEventBus);
         ModItems.register(modEventBus);
         modEventBus.addListener(this::commonSetup);
         BLOCKS.register(modEventBus);
