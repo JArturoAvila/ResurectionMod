@@ -45,48 +45,40 @@ public class PlayerDeathEvent {
 
             // 3. Mostrar un título a todos los jugadores
             Component title = Component.literal(player.getName().getString() + " ha caído!")
-                    .withStyle(ChatFormatting.DARK_RED);  // Cambia el color a rojo oscuro
+                    .withStyle(ChatFormatting.DARK_RED);
 
             Component subtitle = Component.literal("En las coordenadas: " + Math.round(player.getX()) + ", " + Math.round(player.getY()) + ", " + Math.round(player.getZ()))
-                    .withStyle(ChatFormatting.DARK_RED);  // Color del subtítulo en gris
-
-
+                    .withStyle(ChatFormatting.DARK_RED);
 
             for (ServerPlayer onlinePlayer : level.getServer().getPlayerList().getPlayers()) {
                 onlinePlayer.connection.send(new ClientboundSetTitleTextPacket(title));
                 onlinePlayer.connection.send(new ClientboundSetSubtitleTextPacket(subtitle));
             }
 
-            deadPlayers.add(player);
-
-
             // Crea el ItemStack del alma del jugador
             ItemStack playerSoul = new ItemStack(ModItems.PLAYERSOUL.get());
             playerSoul.setHoverName(Component.literal(player.getName().getString() + "'s Soul"));
 
-            // Dropea el item en el lugar de la muerte
+            // Dropea el item "alma del jugador" en el lugar de la muerte
             ItemEntity itemEntity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), playerSoul);
             itemEntity.setUnlimitedLifetime();
             player.level().addFreshEntity(itemEntity);
 
-            // 4. Cambiar al jugador a modo espectador
-            player.setGameMode(GameType.SPECTATOR);
+            // Añadir al jugador a la lista de muertos (para procesar en el siguiente tick)
+            deadPlayers.add(player);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        // Verificar si el jugador está en la lista de "muertos" y cancelar su movimiento
+        // Verificar si el jugador está en la lista de "muertos" para cambiar el modo de juego en el siguiente tick
         if (event.player instanceof ServerPlayer player && deadPlayers.contains(player)) {
-            // Evita cualquier movimiento del jugador
-            player.setDeltaMovement(0, 0, 0);  // Esto detiene cualquier movimiento
-
-            // Si es necesario, fija al jugador en su posición actual
-            player.teleportTo(player.getX(), player.getY(), player.getZ());
+            player.setGameMode(GameType.SPECTATOR);
+            deadPlayers.remove(player); // Eliminamos de la lista una vez hecho el cambio
         }
     }
 
-    // Evento para remover al jugador de la lista de "muertos" si reviven
+    // Evento para remover al jugador de la lista de "muertos" si revive
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -94,4 +86,3 @@ public class PlayerDeathEvent {
         }
     }
 }
-
