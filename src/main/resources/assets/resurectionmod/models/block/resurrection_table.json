@@ -1,10 +1,52 @@
 {
-  "parent": "minecraft:block/template_sculk_shrieker",
+  "credit": "Made with Blockbench",
   "textures": {
-    "particle": "resurectionmod:block/resurrection_table_side",
-    "bottom": "resurectionmod:block/resurrection_table_bottom",
-    "top": "resurectionmod:block/resurrection_table_top",
-    "side": "resurectionmod:block/resurrection_table_side",
-    "inner_top": "resurectionmod:block/resurrection_table_inner_top"
-  }
+    "0": "resurectionmod:block/resurrection_table_side",
+    "1": "resurectionmod:block/resurrection_table_top",
+    "2": "resurectionmod:block/resurrection_table_bottom",
+    "3": "resurectionmod:block/resurrection_table_inner_top",
+    "particle": "resurectionmod:block/resurrection_table_side"
+  },
+  "elements": [
+    {
+      "name": "exterior",
+      "from": [0, 0, 0],
+      "to": [16, 7, 16],
+      "rotation": {"angle": 0, "axis": "y", "origin": [2, 0, 2]},
+      "faces": {
+        "north": {"uv": [0, 8, 16, 16], "texture": "#0", "cullface": "north"},
+        "east": {"uv": [0, 8, 16, 16], "texture": "#0", "cullface": "east"},
+        "south": {"uv": [0, 8, 16, 16], "texture": "#0", "cullface": "south"},
+        "west": {"uv": [0, 8, 16, 16], "texture": "#0", "cullface": "west"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#3"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#2"}
+      }
+    },
+    {
+      "from": [1, 7, 1],
+      "to": [15, 15, 15],
+      "faces": {
+        "north": {"uv": [1, 1, 15, 8], "texture": "#0", "cullface": "north"},
+        "east": {"uv": [1, 1, 15, 8], "texture": "#0", "cullface": "east"},
+        "south": {"uv": [1, 1, 15, 8], "texture": "#0", "cullface": "south"},
+        "west": {"uv": [1, 1, 15, 8], "texture": "#0", "cullface": "west"},
+        "up": {"uv": [1, 1, 15, 15], "texture": "#1"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.375, 0.375, 0.375]
+    }
+  },
+  "groups": [
+    {
+      "name": "group",
+      "origin": [0, 0, 0],
+      "color": 0,
+      "children": [0, 1]
+    }
+  ]
 }
