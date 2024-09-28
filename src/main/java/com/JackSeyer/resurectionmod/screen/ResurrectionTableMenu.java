@@ -3,6 +3,7 @@ package com.JackSeyer.resurectionmod.screen;
 import com.JackSeyer.resurectionmod.blockentity.ResurrectionTableBlockEntity;
 import com.JackSeyer.resurectionmod.block.ModBlocks;
 import com.JackSeyer.resurectionmod.init.MenuInit;
+import com.JackSeyer.resurectionmod.item.ModItems;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -13,6 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,11 +46,28 @@ public class ResurrectionTableMenu extends AbstractContainerMenu {
     }
 
     private void createBlockEntityInventory(ResurrectionTableBlockEntity be) {
-        IItemHandler inventory = be.getInventory(); // Obtén el inventario del bloque
-        // Slots específicos para la mesa de resurrección
-        addSlot(new SlotItemHandler(inventory, 0, 56, 17)); // Slot para el Player Soul
-        addSlot(new SlotItemHandler(inventory, 1, 56, 53)); // Slot para el Corazón del Mar
+        // Obtener el inventario directamente usando el nuevo método getInventory()
+        ItemStackHandler inventory = be.getInventory();
+
+        // Slot específico para el PlayerSoul
+        addSlot(new SlotItemHandler(inventory, 0, 56, 17) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                // Verificar si el item es PlayerSoul
+                return stack.getItem() == ModItems.PLAYERSOUL.get();
+            }
+        });
+
+        // Slot específico para el Corazón del Mar (Heart of the Sea)
+        addSlot(new SlotItemHandler(inventory, 1, 56, 53) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                // Verificar si el item es Heart of the Sea
+                return stack.getItem() == net.minecraft.world.item.Items.HEART_OF_THE_SEA;
+            }
+        });
     }
+
 
     private void createPlayerInventory(Inventory playerInv) {
         // Inventario del jugador
