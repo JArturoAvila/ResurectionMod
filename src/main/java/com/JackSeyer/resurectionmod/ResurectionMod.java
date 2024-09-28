@@ -2,9 +2,10 @@ package com.JackSeyer.resurectionmod;
 
 import com.JackSeyer.resurectionmod.block.ModBlocks;
 import com.JackSeyer.resurectionmod.command.ReviveCommand;
+import com.JackSeyer.resurectionmod.init.ModBlockEntities;
 import com.JackSeyer.resurectionmod.item.ModItems;
 import com.JackSeyer.resurectionmod.event.PlayerDeathEvent; // Importamos la clase de eventos
-
+import com.JackSeyer.resurectionmod.init.MenuInit;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -56,7 +57,9 @@ public class ResurectionMod {
     public ResurectionMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        ModBlocks.BLOCKS.register(modEventBus);
+        MenuInit.MENU_TYPES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModBlockEntities.BLOCK_ENTITIES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        ModBlocks.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         ModBlocks.ITEMS.register(modEventBus);
         ModItems.register(modEventBus);
         modEventBus.addListener(this::commonSetup);
