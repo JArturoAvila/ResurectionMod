@@ -25,7 +25,7 @@ public class ModBlocks {
     public static final RegistryObject<ResurrectionTableBlock> RESURRECTION_TABLE = BLOCKS.register("resurrection_table",
             () -> new ResurrectionTableBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)
                     .mapColor(MapColor.COLOR_BLUE)
-                    .strength(5.0f, 10.0f) // Fuerza y dureza del bloque
+                    .strength(0.4f, 1.0f) // Fuerza y dureza del bloque
                     .noOcclusion()
             ));
     // Deferred Register para los items (BlockItems incluidos)

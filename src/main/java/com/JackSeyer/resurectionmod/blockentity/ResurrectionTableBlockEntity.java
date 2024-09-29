@@ -86,7 +86,6 @@ public class ResurrectionTableBlockEntity extends BlockEntity implements MenuPro
                     player.drop(playerSoulStack, false);
                     player.drop(heartOfSeaStack, false);
                 } else {
-                    player.sendSystemMessage(Component.literal("Intentando resucitar..."));
 
                     // Si el jugador está conectado, eliminar los items
                     inventory.extractItem(0, 1, false);
@@ -97,14 +96,17 @@ public class ResurrectionTableBlockEntity extends BlockEntity implements MenuPro
                     lightning.moveTo(Vec3.atBottomCenterOf(pos));
                     level.addFreshEntity(lightning);
 
-                    // Teleportar y revivir al jugador
-                    ServerLevel serverLevel = (ServerLevel) level;
-                    deadPlayer.teleportTo(serverLevel, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, deadPlayer.getYRot(), deadPlayer.getXRot());
-                    deadPlayer.setGameMode(GameType.SURVIVAL);
+                    // Usar un método de programación para esperar un tiempo antes de teletransportar al jugador
+                    level.getServer().execute(() -> {
+                        // Teleportar y revivir al jugador
+                        ServerLevel serverLevel = (ServerLevel) level;
+                        deadPlayer.teleportTo(serverLevel, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, deadPlayer.getYRot(), deadPlayer.getXRot());
+                        deadPlayer.setGameMode(GameType.SURVIVAL);
 
-                    // Enviar mensaje dorado en el chat
-                    Component resurrectMessage = Component.literal(playerName + " ha resucitado de entre los muertos!").withStyle(ChatFormatting.GOLD);
-                    level.getServer().getPlayerList().broadcastSystemMessage(resurrectMessage, false);
+                        // Enviar mensaje dorado en el chat
+                        Component resurrectMessage = Component.literal(playerName + " ha resucitado de entre los muertos!").withStyle(ChatFormatting.GOLD);
+                        level.getServer().getPlayerList().broadcastSystemMessage(resurrectMessage, false);
+                    });
                 }
             } else {
                 player.sendSystemMessage(Component.literal("Items incorrectos o faltantes."));
