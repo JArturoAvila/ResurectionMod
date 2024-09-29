@@ -6,6 +6,7 @@ import com.JackSeyer.resurectionmod.init.ModBlockEntities;
 import com.JackSeyer.resurectionmod.item.ModItems;
 import com.JackSeyer.resurectionmod.event.PlayerDeathEvent; // Importamos la clase de eventos
 import com.JackSeyer.resurectionmod.init.MenuInit;
+import com.JackSeyer.resurectionmod.network.ModNetwork;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -82,6 +83,15 @@ public class ResurectionMod {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS)
             event.accept(ModItems.PLAYERSOUL);
+    }
+
+    @Mod.EventBusSubscriber(modid = "resurectionmod", bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ModEvents {
+
+        @SubscribeEvent
+        public static void onCommonSetup(FMLCommonSetupEvent event) {
+            ModNetwork.registerPackets();
+        }
     }
 
     @SubscribeEvent

@@ -1,17 +1,27 @@
 package com.JackSeyer.resurectionmod.blockentity;
 
 import com.JackSeyer.resurectionmod.init.ModBlockEntities;
+import com.JackSeyer.resurectionmod.item.ModItems;
 import com.JackSeyer.resurectionmod.screen.ResurrectionTableMenu;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -22,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResurrectionTableBlockEntity extends BlockEntity implements MenuProvider {
     private static final Component TITLE =
-            Component.translatable("container.resurrection_table");
+            Component.translatable("Resurrection Table");
 
     // Define un inventario con dos slots para el bloque
     private final ItemStackHandler inventory = new ItemStackHandler(2) {
@@ -42,6 +52,67 @@ public class ResurrectionTableBlockEntity extends BlockEntity implements MenuPro
     public void openMenu(ServerPlayer player) {
         NetworkHooks.openScreen(player, this, this.getBlockPos());
     }
+
+    public void tryResurrect(Level level, BlockPos pos, Player player) {
+        player.sendSystemMessage(Component.literal("Intentando iniciar resurrección..."));
+
+        if (level.isClientSide) {
+           // player.sendSystemMessage(Component.literal("Lado cliente, no se procede."));
+            return; // Evita la ejecución en el lado del cliente
+        }
+
+        // Asegúrate de que el nivel y el servidor no sean nulos
+        if (level == null || level.getServer() == null) {
+          //  player.sendSystemMessage(Component.literal("El nivel o servidor no están disponibles."));
+            return;
+        }
+
+        // Obtener la capacidad de inventario
+        this.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(inventory -> {
+            // Obtener los items de las ranuras
+            ItemStack playerSoulStack = inventory.getStackInSlot(0);
+            ItemStack heartOfSeaStack = inventory.getStackInSlot(1);
+
+            // Verificar si ambos items están en las ranuras correspondientes
+            if (playerSoulStack.getItem() == ModItems.PLAYERSOUL.get() && heartOfSeaStack.getItem() == Items.HEART_OF_THE_SEA) {
+
+                // Extraer el nombre del jugador del PlayerSoul
+                String playerName = playerSoulStack.getHoverName().getString().replace("'s Soul", "");
+                ServerPlayer deadPlayer = level.getServer().getPlayerList().getPlayerByName(playerName);
+
+                if (deadPlayer == null) {
+                    // Si el jugador no está conectado, cerrar la mesa y devolver los items
+                    player.sendSystemMessage(Component.literal(playerName + " no está conectado."));
+                    player.drop(playerSoulStack, false);
+                    player.drop(heartOfSeaStack, false);
+                } else {
+                    player.sendSystemMessage(Component.literal("Intentando resucitar..."));
+
+                    // Si el jugador está conectado, eliminar los items
+                    inventory.extractItem(0, 1, false);
+                    inventory.extractItem(1, 1, false);
+
+                    // Crear un rayo en la mesa
+                    LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level);
+                    lightning.moveTo(Vec3.atBottomCenterOf(pos));
+                    level.addFreshEntity(lightning);
+
+                    // Teleportar y revivir al jugador
+                    ServerLevel serverLevel = (ServerLevel) level;
+                    deadPlayer.teleportTo(serverLevel, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, deadPlayer.getYRot(), deadPlayer.getXRot());
+                    deadPlayer.setGameMode(GameType.SURVIVAL);
+
+                    // Enviar mensaje dorado en el chat
+                    Component resurrectMessage = Component.literal(playerName + " ha resucitado de entre los muertos!").withStyle(ChatFormatting.GOLD);
+                    level.getServer().getPlayerList().broadcastSystemMessage(resurrectMessage, false);
+                }
+            } else {
+                player.sendSystemMessage(Component.literal("Items incorrectos o faltantes."));
+            }
+        });
+    }
+
+
 
     @Override
     public void load(@NotNull CompoundTag nbt) {

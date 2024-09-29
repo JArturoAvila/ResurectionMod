@@ -12,19 +12,23 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos; // Importa BlockPos
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class ResurrectionTableMenu extends AbstractContainerMenu {
     private final ResurrectionTableBlockEntity blockEntity;
     private final ContainerLevelAccess levelAccess;
+    private final BlockPos blockPos; // Añade BlockPos como un campo
 
     // Constructor para el cliente
     public ResurrectionTableMenu(int containerId, Inventory playerInv, FriendlyByteBuf additionalData) {
-        this(containerId, playerInv, playerInv.player.level().getBlockEntity(additionalData.readBlockPos()));
+        this(containerId, playerInv, (ResurrectionTableBlockEntity) playerInv.player.level().getBlockEntity(additionalData.readBlockPos()));
     }
 
     // Constructor para el servidor
@@ -32,6 +36,7 @@ public class ResurrectionTableMenu extends AbstractContainerMenu {
         super(MenuInit.RESURRECTION_TABLE_MENU.get(), containerId);
         if (blockEntity instanceof ResurrectionTableBlockEntity be) {
             this.blockEntity = be;
+            this.blockPos = be.getBlockPos(); // Almacena la posición del bloque
         } else {
             throw new IllegalStateException("Incorrect block entity class (%s) passed into ResurrectionTableMenu!"
                     .formatted(blockEntity.getClass().getCanonicalName()));
@@ -46,28 +51,28 @@ public class ResurrectionTableMenu extends AbstractContainerMenu {
     }
 
     private void createBlockEntityInventory(ResurrectionTableBlockEntity be) {
-        // Obtener el inventario directamente usando el nuevo método getInventory()
-        ItemStackHandler inventory = be.getInventory();
+        // Obtén la capacidad de inventario usando ForgeCapabilities.ITEM_HANDLER
+        LazyOptional<IItemHandler> itemHandlerOptional = be.getCapability(ForgeCapabilities.ITEM_HANDLER);
 
-        // Slot específico para el PlayerSoul
-        addSlot(new SlotItemHandler(inventory, 0, 56, 17) {
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                // Verificar si el item es PlayerSoul
-                return stack.getItem() == ModItems.PLAYERSOUL.get();
-            }
-        });
+        // Verifica si el inventario está presente
+        itemHandlerOptional.ifPresent(inventory -> {
+            // Solo se puede colocar el PlayerSoul en el primer slot
+            addSlot(new SlotItemHandler(inventory, 0, 56, 17) {
+                @Override
+                public boolean mayPlace(@NotNull ItemStack stack) {
+                    return stack.getItem() == ModItems.PLAYERSOUL.get();
+                }
+            });
 
-        // Slot específico para el Corazón del Mar (Heart of the Sea)
-        addSlot(new SlotItemHandler(inventory, 1, 56, 53) {
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                // Verificar si el item es Heart of the Sea
-                return stack.getItem() == net.minecraft.world.item.Items.HEART_OF_THE_SEA;
-            }
+            // Solo se puede colocar el Corazón del Mar en el segundo slot
+            addSlot(new SlotItemHandler(inventory, 1, 56, 53) {
+                @Override
+                public boolean mayPlace(@NotNull ItemStack stack) {
+                    return stack.getItem() == Items.HEART_OF_THE_SEA;
+                }
+            });
         });
     }
-
 
     private void createPlayerInventory(Inventory playerInv) {
         // Inventario del jugador
@@ -83,6 +88,10 @@ public class ResurrectionTableMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(playerInv, column, 8 + (column * 18), 142));
         }
+    }
+
+    public BlockPos getBlockPos() {
+        return this.blockPos; // Asegúrate de que blockPos se inicialice en el constructor
     }
 
     @Override
