@@ -83,8 +83,8 @@ public class ResurrectionTableBlockEntity extends BlockEntity implements MenuPro
                 if (deadPlayer == null) {
                     // Si el jugador no está conectado, cerrar la mesa y devolver los items
                     player.sendSystemMessage(Component.literal(playerName + " no está conectado."));
-                    player.drop(playerSoulStack, false);
-                    player.drop(heartOfSeaStack, false);
+//                    player.drop(playerSoulStack, false);
+//                    player.drop(heartOfSeaStack, false);
                 } else {
 
                     // Si el jugador está conectado, eliminar los items

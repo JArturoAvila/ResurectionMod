@@ -38,7 +38,7 @@ public class ModBlocks {
     // Evento para agregar el bloque a la pestaña creativa
     @SubscribeEvent
     public static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {  // Usar getTabKey()
+        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {  // Usar getTabKey()
             event.accept(RESURRECTION_TABLE_ITEM.get());  // Añadir el BlockItem a la pestaña de construcción
         }
     }

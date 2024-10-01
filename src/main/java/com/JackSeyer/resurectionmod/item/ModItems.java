@@ -14,7 +14,7 @@ public class ModItems {
 
     // Crea el objeto PlayerSoul
     public static final RegistryObject<Item> PLAYERSOUL = ITEMS.register("playersoul",
-            () -> new Item(new Item.Properties()));
+            () -> new PlayerSoul(new Item.Properties()));
 
     // Crea la funcion REGISTER
     public static void register(IEventBus eventBus){
