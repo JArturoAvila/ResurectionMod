@@ -2,6 +2,7 @@ package com.JackSeyer.resurectionmod.event;
 
 import com.JackSeyer.resurectionmod.item.ModItems;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -59,10 +61,39 @@ public class PlayerDeathEvent {
             ItemStack playerSoul = new ItemStack(ModItems.PLAYERSOUL.get());
             playerSoul.setHoverName(Component.literal(player.getName().getString() + "'s Soul"));
 
-            // Dropea el item "alma del jugador" en el lugar de la muerte
-            ItemEntity itemEntity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), playerSoul);
-            itemEntity.setUnlimitedLifetime();
-            player.level().addFreshEntity(itemEntity);
+            // Verificar si el jugador murió en el End y por caída fuera del mundo (y < 0)
+            if (level.dimension() == Level.END && player.getY() < 0) {
+                // Dropea el item en coordenadas seguras en el End (cerca del portal de salida)
+                double safeX = -3.0;
+                double safeY = 64.0;  // Altura segura
+                double safeZ = 0.0;
+
+                ItemEntity itemEntity = new ItemEntity(level, safeX, safeY, safeZ, playerSoul);
+                itemEntity.setUnlimitedLifetime();
+                level.addFreshEntity(itemEntity);
+
+                // Mandar mensaje con las coordenadas del drop
+                String dropMessage = player.getName().getString() + "'s Soul fue dropeada en el portal de del end";
+                level.getServer().getPlayerList().broadcastSystemMessage(Component.literal(dropMessage), false);
+            } else if (player.getY() < level.getMinBuildHeight()) {
+                // Dropear el ítem en la superficie más cercana si cayó por debajo del mundo en otras dimensiones
+                int safeY = findSafeY(level, player.blockPosition().above());
+
+                ItemEntity itemEntity = new ItemEntity(level, player.getX(), safeY, player.getZ(), playerSoul);
+                itemEntity.setUnlimitedLifetime();
+                level.addFreshEntity(itemEntity);
+
+                // Mandar mensaje con las coordenadas del drop
+                String dropMessage = player.getName().getString() + "'s Soul fue dropeada en " +
+                        Math.round(player.getX()) + ", " + safeY + ", " + Math.round(player.getZ());
+                level.getServer().getPlayerList().broadcastSystemMessage(Component.literal(dropMessage), false);
+            } else {
+                // Dropea el ítem en el lugar de la muerte si no fue fuera del mundo
+                ItemEntity itemEntity = new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), playerSoul);
+                itemEntity.setUnlimitedLifetime();
+                player.level().addFreshEntity(itemEntity);
+            }
+
 
             // Añadir al jugador a la lista de muertos (para procesar en el siguiente tick)
             deadPlayers.add(player);
@@ -84,5 +115,16 @@ public class PlayerDeathEvent {
         if (event.getEntity() instanceof ServerPlayer player) {
             deadPlayers.remove(player);  // Elimina al jugador de la lista si revive
         }
+    }
+
+    // Método para buscar una altura segura (primer bloque sólido) donde dropear el ítem
+    private static int findSafeY(ServerLevel level, BlockPos pos) {
+        for (int y = level.getMaxBuildHeight(); y > level.getMinBuildHeight(); y--) {
+            BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
+            if (!level.getBlockState(checkPos).isAir()) {
+                return y + 1;  // Retorna la primera coordenada con bloque sólido
+            }
+        }
+        return level.getMinBuildHeight();  // Si no hay bloque sólido, dropea en el nivel mínimo
     }
 }
